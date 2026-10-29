@@ -282,7 +282,7 @@ export default function ThetaScrollBackground() {
   return (
     <div
       ref={mountRef}
-      className="fixed inset-0 pointer-events-none z-0 opacity-75 transition-opacity duration-1000"
+      className="fixed inset-0 pointer-events-none z-0 opacity-40 transition-opacity duration-1000"
       style={{ willChange: 'transform' }}
       aria-hidden="true"
     />

@@ -9,206 +9,123 @@ export default function ThreeCanvas() {
     if (!containerRef.current) return;
 
     const container = containerRef.current;
-    let width = container.clientWidth || 520;
-    let height = container.clientHeight || 520;
+    let width = container.clientWidth || 500;
+    let height = container.clientHeight || 500;
 
-    // 1. Scene & 4K Perspective Camera Setup
+    // 1. Scene & Camera Setup (calibrated so no rings ever cut off)
     const scene = new THREE.Scene();
-    
-    // Perfectly calibrated FOV and distance so nothing ever clips or cuts off
-    const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 100);
-    camera.position.set(0, 0, 8.8);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(0, 0, 8.2);
 
-    // 2. Ultra-Sharp 4K Antialiased WebGL Renderer
+    // 2. High-Fidelity Antialiased Renderer with Soft Tonemapping
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
       powerPreference: 'high-performance',
-      stencil: false,
-      depth: true
     });
     renderer.setSize(width, height);
-    // Support up to 3x pixel ratio for crystal-clear 4K Retina displays
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3.0));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
-    renderer.shadowMap.enabled = false; // keep 60fps high throughput
+    renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
 
-    // 3. Master Assembly Group
-    const masterAssembly = new THREE.Group();
-    scene.add(masterAssembly);
+    // 3. Master Assembly
+    const masterGroup = new THREE.Group();
+    scene.add(masterGroup);
 
-    // 4. Central Pearlescent Diamond Crystal (7. Varoluş Seviyesi - Saf Bilinç Çekirdeği)
-    const coreGeo = new THREE.IcosahedronGeometry(1.05, 3);
-    const coreMat = new THREE.MeshPhysicalMaterial({
-      color: 0xFFFDF7,
-      emissive: 0xD4AF37,
-      emissiveIntensity: 0.22,
-      roughness: 0.08,
-      metalness: 0.88,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.08,
+    // 4. Soft Ethereal Inner Core (Sade & Işıltılı Şeffaf Kristal)
+    const coreGeo = new THREE.IcosahedronGeometry(1.25, 2);
+    const coreMat = new THREE.MeshStandardMaterial({
+      color: 0xFAF6EB, // Yumuşak kemik krem
+      roughness: 0.25,
+      metalness: 0.45,
       transparent: true,
-      opacity: 0.72,
-      reflectivity: 0.95,
+      opacity: 0.38,
     });
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    masterAssembly.add(coreMesh);
+    masterGroup.add(coreMesh);
 
-    // 4b. Inner Glowing Heart
-    const heartGeo = new THREE.SphereGeometry(0.5, 32, 32);
-    const heartMat = new THREE.MeshBasicMaterial({
-      color: 0xFDF3D0,
+    // 4b. Inner Subtle Glow Sphere
+    const innerGlowGeo = new THREE.SphereGeometry(0.7, 24, 24);
+    const innerGlowMat = new THREE.MeshBasicMaterial({
+      color: 0xFDF8EC,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.22,
     });
-    const heartMesh = new THREE.Mesh(heartGeo, heartMat);
-    masterAssembly.add(heartMesh);
+    const innerGlow = new THREE.Mesh(innerGlowGeo, innerGlowMat);
+    masterGroup.add(innerGlow);
 
-    // 5. Volumetric Unbroken Sacred Geometry Cage (Icosahedron Solid Struts)
-    // Instead of fragile 1px lines that break/clip, we generate real 3D solid cylinders for every edge!
-    const strutGroup = new THREE.Group();
-    const cageBaseGeo = new THREE.IcosahedronGeometry(1.65, 1);
-    const cagePositions = cageBaseGeo.attributes.position;
-    const vertexMap = [];
-
-    for (let i = 0; i < cagePositions.count; i++) {
-      vertexMap.push(new THREE.Vector3(
-        cagePositions.getX(i),
-        cagePositions.getY(i),
-        cagePositions.getZ(i)
-      ));
-    }
-
-    // Build unique edges
-    const edges = [];
-    const edgeKey = (a, b) => (a < b ? `${a}_${b}` : `${b}_${a}`);
-    const edgeSet = new Set();
-
-    for (let i = 0; i < vertexMap.length; i++) {
-      for (let j = i + 1; j < vertexMap.length; j++) {
-        const d = vertexMap[i].distanceTo(vertexMap[j]);
-        // Icosahedron edge length is roughly 1.73 * radius for subdivision 1
-        if (d > 1.4 && d < 2.1) {
-          const key = edgeKey(i, j);
-          if (!edgeSet.has(key)) {
-            edgeSet.add(key);
-            edges.push([vertexMap[i], vertexMap[j]]);
-          }
-        }
-      }
-    }
-
-    const strutMat = new THREE.MeshStandardMaterial({
-      color: 0xD4AF37, // Polished Champagne Gold
-      emissive: 0xB89225,
-      emissiveIntensity: 0.15,
-      metalness: 0.94,
-      roughness: 0.12,
+    // 5. Zarif & Sade Geodezik Tel Kafes (Merkaba / Kuantum Alanı)
+    const wireGeo = new THREE.IcosahedronGeometry(1.72, 1);
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: 0xD4AF37, // Sıcak Şampanya Altını
+      wireframe: true,
+      transparent: true,
+      opacity: 0.48,
     });
+    const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+    masterGroup.add(wireMesh);
 
-    edges.forEach(([v1, v2]) => {
-      const distance = v1.distanceTo(v2);
-      const strutGeo = new THREE.CylinderGeometry(0.016, 0.016, distance, 12);
-      const strut = new THREE.Mesh(strutGeo, strutMat);
+    // 5b. Narin Sinaps Düğüm İncileri (Altın & Krem Düğümler)
+    const posAttr = wireGeo.attributes.position;
+    const vertexCount = posAttr.count;
+    const nodeSpheres = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(0.038, 16, 16),
+      new THREE.MeshBasicMaterial({
+        color: 0xF5E6B8, // Soft pastel altın
+      }),
+      vertexCount
+    );
 
-      // Position at midpoint
-      const mid = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
-      strut.position.copy(mid);
-
-      // Orient towards direction
-      const dir = new THREE.Vector3().subVectors(v2, v1).normalize();
-      const axis = new THREE.Vector3(0, 1, 0);
-      strut.quaternion.setFromUnitVectors(axis, dir);
-
-      strutGroup.add(strut);
-    });
-    masterAssembly.add(strutGroup);
-
-    // 5b. Synapse Node Spheres (32 Golden Pearls at vertices)
-    const nodeGeo = new THREE.SphereGeometry(0.052, 24, 24);
-    const nodeMat = new THREE.MeshStandardMaterial({
-      color: 0xFFF2BE,
-      emissive: 0xD4AF37,
-      emissiveIntensity: 0.55,
-      metalness: 0.95,
-      roughness: 0.08,
-    });
-    const nodesMesh = new THREE.InstancedMesh(nodeGeo, nodeMat, vertexMap.length);
     const dummy = new THREE.Object3D();
-
-    vertexMap.forEach((v, idx) => {
-      dummy.position.copy(v);
+    for (let i = 0; i < vertexCount; i++) {
+      dummy.position.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
       dummy.updateMatrix();
-      nodesMesh.setMatrixAt(idx, dummy.matrix);
-    });
-    masterAssembly.add(nodesMesh);
+      nodeSpheres.setMatrixAt(i, dummy.matrix);
+    }
+    masterGroup.add(nodeSpheres);
 
-    // 6. Triple Unbroken 4K Theta Wave Frequency Rings
-    // Built with high-tessellation TorusGeometry (300 tubular segments, 32 radial)
+    // 6. İki Adet Zarif & Soft Rezonans Halkası (Kesilmeyen, narin toruslar)
+    // Radius 2.25 max, camera z: 8.2 — ekrana tam ve kusursuz sığar
     const ringGroup = new THREE.Group();
-    const ringConfigs = [
-      {
-        radius: 2.15,
-        tube: 0.024,
-        rotX: Math.PI / 3.2,
-        rotY: 0,
-        color: 0xD4AF37, // Champagne Gold
-        emissive: 0xB89225,
-        speed: 0.28
-      },
-      {
-        radius: 2.32,
-        tube: 0.020,
-        rotX: -Math.PI / 3.4,
-        rotY: Math.PI / 3.8,
-        color: 0x7A8B7B, // Grounding Sage
-        emissive: 0x485549,
-        speed: -0.32
-      },
-      {
-        radius: 2.48,
-        tube: 0.016,
-        rotX: Math.PI / 5.5,
-        rotY: -Math.PI / 3.2,
-        color: 0xC3B9D6, // Ethereal Lavender
-        emissive: 0x735F92,
-        speed: 0.22
-      }
-    ];
 
-    const rings = ringConfigs.map((cfg) => {
-      const geo = new THREE.TorusGeometry(cfg.radius, cfg.tube, 32, 300);
-      const mat = new THREE.MeshPhysicalMaterial({
-        color: cfg.color,
-        emissive: cfg.emissive,
-        emissiveIntensity: 0.2,
-        metalness: 0.92,
-        roughness: 0.12,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.1,
-      });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.rotation.x = cfg.rotX;
-      mesh.rotation.y = cfg.rotY;
-      ringGroup.add(mesh);
-      return { mesh, speed: cfg.speed };
+    // 1. Halka: Sıcak Şampanya Altını
+    const ring1Geo = new THREE.TorusGeometry(2.18, 0.016, 24, 200);
+    const ring1Mat = new THREE.MeshBasicMaterial({
+      color: 0xD4AF37,
+      transparent: true,
+      opacity: 0.42,
     });
-    masterAssembly.add(ringGroup);
+    const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
+    ring1.rotation.x = Math.PI / 3.2;
+    ringGroup.add(ring1);
 
-    // 7. Ambient Micro-Stardust Halo (650 Shimmering Points)
-    const particleCount = 650;
+    // 2. Halka: Dingin Topraklayıcı Adaçayı Yeşili
+    const ring2Geo = new THREE.TorusGeometry(2.32, 0.013, 24, 200);
+    const ring2Mat = new THREE.MeshBasicMaterial({
+      color: 0x7A8B7B,
+      transparent: true,
+      opacity: 0.38,
+    });
+    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+    ring2.rotation.x = -Math.PI / 3.4;
+    ring2.rotation.y = Math.PI / 4;
+    ringGroup.add(ring2);
+
+    masterGroup.add(ringGroup);
+
+    // 7. Hafif ve Dingin Parçacık Tozu (380 Adet Soft Yıldız)
+    const particleCount = 380;
     const pGeo = new THREE.BufferGeometry();
     const pPositions = new Float32Array(particleCount * 3);
     const pColors = new Float32Array(particleCount * 3);
 
     const cGold = new THREE.Color('#D4AF37');
     const cSage = new THREE.Color('#7A8B7B');
-    const cCream = new THREE.Color('#FFF5DC');
+    const cCream = new THREE.Color('#FAF5E8');
 
     for (let i = 0; i < particleCount; i++) {
-      const dist = 2.0 + Math.random() * 2.2;
+      const dist = 1.9 + Math.random() * 2.1;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
@@ -217,7 +134,7 @@ export default function ThreeCanvas() {
       pPositions[i * 3 + 2] = dist * Math.cos(phi);
 
       const pick = Math.random();
-      const col = pick < 0.5 ? cGold : pick < 0.82 ? cSage : cCream;
+      const col = pick < 0.5 ? cGold : pick < 0.85 ? cSage : cCream;
       pColors[i * 3] = col.r;
       pColors[i * 3 + 1] = col.g;
       pColors[i * 3 + 2] = col.b;
@@ -227,35 +144,28 @@ export default function ThreeCanvas() {
     pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
 
     const pMat = new THREE.PointsMaterial({
-      size: 0.048,
+      size: 0.038,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.65,
+      blending: THREE.NormalBlending,
     });
     const particles = new THREE.Points(pGeo, pMat);
-    masterAssembly.add(particles);
+    masterGroup.add(particles);
 
-    // 8. 4K Cinematic Studio Lighting Rig
-    const ambientLight = new THREE.AmbientLight(0xFFFDF8, 1.6);
+    // 8. Dingin & Yumuşak Doğal Işıklandırma
+    const ambientLight = new THREE.AmbientLight(0xFFFDF8, 1.3);
     scene.add(ambientLight);
 
-    // Key Light (Warm Champagne)
-    const keyLight = new THREE.PointLight(0xD4AF37, 5.0, 30);
-    keyLight.position.set(7, 7, 7);
-    scene.add(keyLight);
+    const softGoldLight = new THREE.PointLight(0xD4AF37, 2.4, 25);
+    softGoldLight.position.set(5, 5, 5);
+    scene.add(softGoldLight);
 
-    // Fill Light (Calming Sage)
-    const fillLight = new THREE.PointLight(0x7A8B7B, 3.8, 30);
-    fillLight.position.set(-7, -4, 5);
-    scene.add(fillLight);
+    const softSageLight = new THREE.PointLight(0x7A8B7B, 2.0, 25);
+    softSageLight.position.set(-5, -4, 4);
+    scene.add(softSageLight);
 
-    // Specular Rim Light (Crystal Diamond)
-    const rimLight = new THREE.PointLight(0xFFFFFF, 3.0, 20);
-    rimLight.position.set(0, 8, -4);
-    scene.add(rimLight);
-
-    // 9. Fluid Mouse & Drag Inertia Controls
+    // 9. Akıcı Fare & Dokunmatik Etkileşim
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
@@ -281,8 +191,8 @@ export default function ThreeCanvas() {
       if (isDragging) {
         const deltaX = e.clientX - prevMouseX;
         const deltaY = e.clientY - prevMouseY;
-        velocityY += deltaX * 0.005;
-        velocityX += deltaY * 0.005;
+        velocityY += deltaX * 0.004;
+        velocityX += deltaY * 0.004;
         prevMouseX = e.clientX;
         prevMouseY = e.clientY;
       }
@@ -300,18 +210,16 @@ export default function ThreeCanvas() {
         prevMouseY = e.touches[0].clientY;
       }
     };
-
     const onTouchMove = (e) => {
       if (isDragging && e.touches.length === 1) {
         const deltaX = e.touches[0].clientX - prevMouseX;
         const deltaY = e.touches[0].clientY - prevMouseY;
-        velocityY += deltaX * 0.006;
-        velocityX += deltaY * 0.006;
+        velocityY += deltaX * 0.005;
+        velocityX += deltaY * 0.005;
         prevMouseX = e.touches[0].clientX;
         prevMouseY = e.touches[0].clientY;
       }
     };
-
     const onTouchEnd = () => {
       isDragging = false;
     };
@@ -333,7 +241,7 @@ export default function ThreeCanvas() {
     window.addEventListener('touchend', onTouchEnd);
     window.addEventListener('resize', handleResize);
 
-    // 10. Flawless 60fps Animation Loop
+    // 10. Meditatif & Dingin Animasyon Döngüsü
     let clock = new THREE.Clock();
     let animId;
 
@@ -341,44 +249,41 @@ export default function ThreeCanvas() {
       animId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
 
-      // Scroll progress factor
+      // Scroll faktörü
       const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
       const scrollFactor = Math.min(1, Math.max(0, window.scrollY / maxScroll));
 
-      // Damped rotational physics
-      masterAssembly.rotation.y += velocityY;
-      masterAssembly.rotation.x += velocityX;
-      velocityX *= 0.92;
-      velocityY *= 0.92;
+      // Sönümlü serbest dönüş
+      masterGroup.rotation.y += velocityY;
+      masterGroup.rotation.x += velocityX;
+      velocityX *= 0.94;
+      velocityY *= 0.94;
 
-      // Meditative autonomous rotation + gentle cursor parallax
-      masterAssembly.rotation.y += 0.005 + scrollFactor * 0.015;
-      masterAssembly.rotation.x += (targetTiltY * 0.28 - masterAssembly.rotation.x) * 0.05;
-      masterAssembly.rotation.z = Math.sin(elapsed * 0.25) * 0.06;
+      // Sakin & meditatif ana dönüş (Theta 5.5 Hz sükuneti)
+      masterGroup.rotation.y += 0.0035 + scrollFactor * 0.012;
+      masterGroup.rotation.x += (targetTiltY * 0.22 - masterGroup.rotation.x) * 0.04;
+      masterGroup.rotation.z = Math.sin(elapsed * 0.18) * 0.04;
 
-      // 4-7 Hz Theta Breathing Pulse on Inner Crystalline Core
-      const pulse4to7Hz = 1.0 + Math.sin(elapsed * 2.2) * 0.05 + Math.sin(elapsed * 5.5) * 0.02;
-      coreMesh.scale.set(pulse4to7Hz, pulse4to7Hz, pulse4to7Hz);
-      heartMesh.scale.set(pulse4to7Hz * 1.1, pulse4to7Hz * 1.1, pulse4to7Hz * 1.1);
+      // Nefes alan iç kristal küre
+      const breath = 1.0 + Math.sin(elapsed * 1.5) * 0.045;
+      coreMesh.scale.set(breath, breath, breath);
+      innerGlow.scale.set(breath * 1.05, breath * 1.05, breath * 1.05);
 
-      // Continuous Counter-Orbit of Cage & Struts
-      strutGroup.rotation.y = -elapsed * 0.1;
-      strutGroup.rotation.z = Math.cos(elapsed * 0.2) * 0.12;
+      // Tel kafesin ters yönde sakin dönüşü
+      wireMesh.rotation.y = -elapsed * 0.09;
+      wireMesh.rotation.z = Math.cos(elapsed * 0.15) * 0.08;
 
-      // Dynamic Node Sparkle
-      const nodePulse = 1.0 + Math.sin(elapsed * 3.5) * 0.12;
-      nodesMesh.rotation.y = strutGroup.rotation.y;
-      nodesMesh.rotation.z = strutGroup.rotation.z;
-      nodesMesh.scale.set(nodePulse, nodePulse, nodePulse);
+      // Düğüm noktalarının eşzamanlı takibi
+      nodeSpheres.rotation.y = wireMesh.rotation.y;
+      nodeSpheres.rotation.z = wireMesh.rotation.z;
 
-      // Smooth Rings Precession
-      rings.forEach((r) => {
-        r.mesh.rotation.z += r.speed * 0.03;
-      });
+      // Halkaların bağımsız salınımı
+      ring1.rotation.z += 0.008;
+      ring2.rotation.z -= 0.009;
 
-      // Micro-Stardust Orbital Flow
-      particles.rotation.y = -elapsed * 0.04;
-      particles.rotation.x = Math.sin(elapsed * 0.08) * 0.08;
+      // Yıldız tozu
+      particles.rotation.y = -elapsed * 0.03;
+      particles.rotation.x = Math.sin(elapsed * 0.06) * 0.05;
 
       renderer.render(scene, camera);
     };
@@ -407,7 +312,7 @@ export default function ThreeCanvas() {
       className={`w-full h-full relative select-none transition-transform duration-300 ${
         isInteracting ? 'cursor-grabbing' : 'cursor-grab'
       }`}
-      title="4K Theta Kuantum Çekirdeği — Döndürmek için tıklayıp sürükleyin"
+      title="Zarif Kuantum Çekirdeği — Döndürmek için tıklayıp sürükleyin"
     />
   );
 }
