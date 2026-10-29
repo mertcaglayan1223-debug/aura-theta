@@ -10,6 +10,8 @@ import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 import AudioPlayer from './components/AudioPlayer';
 import AiOracleModal from './components/AiOracleModal';
+import ThetaScrollBackground from './components/ThetaScrollBackground';
+import ThetaStateHud from './components/ThetaStateHud';
 
 export default function App() {
   const [isOracleOpen, setIsOracleOpen] = useState(false);
@@ -44,15 +46,21 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F8F6] text-sanctuary-950 font-sans selection:bg-champagne-200 selection:text-sanctuary-950 relative">
+    <div className="min-h-screen bg-[#F9F8F6] text-sanctuary-950 font-sans selection:bg-champagne-200 selection:text-sanctuary-950 relative overflow-x-hidden">
+      {/* Global 3D Theta Scrollytelling WebGL Background */}
+      <ThetaScrollBackground />
+
       {/* Ambient Audio Player (432Hz Binaural Web Audio) */}
       <AudioPlayer />
+
+      {/* Real-Time Theta Consciousness Telemetry HUD */}
+      <ThetaStateHud />
 
       {/* Floating Header */}
       <Navbar onOpenOracle={() => setIsOracleOpen(true)} />
 
       {/* Main Sanctuary Experience */}
-      <main>
+      <main className="relative z-10">
         {/* Hero with 3D Quantum Brain / Sacred Geometry WebGL Canvas */}
         <Hero onOpenQuiz={handleOpenQuiz} />
 

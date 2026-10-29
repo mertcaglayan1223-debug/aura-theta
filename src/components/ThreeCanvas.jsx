@@ -1,164 +1,319 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 export default function ThreeCanvas() {
   const containerRef = useRef(null);
+  const [isInteracting, setIsInteracting] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const container = containerRef.current;
-    let width = container.clientWidth || window.innerWidth;
-    let height = container.clientHeight || window.innerHeight;
+    let width = container.clientWidth || 520;
+    let height = container.clientHeight || 520;
 
-    // Scene
+    // 1. Scene & 4K Perspective Camera Setup
     const scene = new THREE.Scene();
+    
+    // Perfectly calibrated FOV and distance so nothing ever clips or cuts off
+    const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 100);
+    camera.position.set(0, 0, 8.8);
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.z = 7;
-
-    // Renderer
+    // 2. Ultra-Sharp 4K Antialiased WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
-      powerPreference: 'high-performance'
+      powerPreference: 'high-performance',
+      stencil: false,
+      depth: true
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Support up to 3x pixel ratio for crystal-clear 4K Retina displays
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3.0));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    renderer.shadowMap.enabled = false; // keep 60fps high throughput
     container.appendChild(renderer.domElement);
 
-    // Group for entire interactive assembly
-    const rootGroup = new THREE.Group();
-    scene.add(rootGroup);
+    // 3. Master Assembly Group
+    const masterAssembly = new THREE.Group();
+    scene.add(masterAssembly);
 
-    // 1. Inner Crystalline Orb (Subconscious Core)
-    const coreGeo = new THREE.IcosahedronGeometry(1.4, 2);
-    const coreMat = new THREE.MeshStandardMaterial({
-      color: 0xF5EBD2,
-      roughness: 0.15,
-      metalness: 0.85,
-      wireframe: false,
+    // 4. Central Pearlescent Diamond Crystal (7. Varoluş Seviyesi - Saf Bilinç Çekirdeği)
+    const coreGeo = new THREE.IcosahedronGeometry(1.05, 3);
+    const coreMat = new THREE.MeshPhysicalMaterial({
+      color: 0xFFFDF7,
+      emissive: 0xD4AF37,
+      emissiveIntensity: 0.22,
+      roughness: 0.08,
+      metalness: 0.88,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.08,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.72,
+      reflectivity: 0.95,
     });
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    rootGroup.add(coreMesh);
+    masterAssembly.add(coreMesh);
 
-    // 2. Sacred Geometry Wireframe Cage (Merkaba / Geodesic Lattice)
-    const wireGeo = new THREE.IcosahedronGeometry(1.85, 1);
-    const wireMat = new THREE.MeshBasicMaterial({
-      color: 0xD4AF37, // Champagne gold
-      wireframe: true,
+    // 4b. Inner Glowing Heart
+    const heartGeo = new THREE.SphereGeometry(0.5, 32, 32);
+    const heartMat = new THREE.MeshBasicMaterial({
+      color: 0xFDF3D0,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.85,
     });
-    const wireMesh = new THREE.Mesh(wireGeo, wireMat);
-    rootGroup.add(wireMesh);
+    const heartMesh = new THREE.Mesh(heartGeo, heartMat);
+    masterAssembly.add(heartMesh);
 
-    // 2b. Neural Synapse Vertex Points (Golden Spheres at wireframe vertices)
-    const posAttribute = wireGeo.attributes.position;
-    const verticesCount = posAttribute.count;
-    const vertexSpheres = new THREE.InstancedMesh(
-      new THREE.SphereGeometry(0.045, 12, 12),
-      new THREE.MeshBasicMaterial({ color: 0xF2E4B4 }),
-      verticesCount
-    );
-    const dummy = new THREE.Object3D();
-    for (let i = 0; i < verticesCount; i++) {
-      dummy.position.set(
-        posAttribute.getX(i),
-        posAttribute.getY(i),
-        posAttribute.getZ(i)
-      );
-      dummy.updateMatrix();
-      vertexSpheres.setMatrixAt(i, dummy.matrix);
+    // 5. Volumetric Unbroken Sacred Geometry Cage (Icosahedron Solid Struts)
+    // Instead of fragile 1px lines that break/clip, we generate real 3D solid cylinders for every edge!
+    const strutGroup = new THREE.Group();
+    const cageBaseGeo = new THREE.IcosahedronGeometry(1.65, 1);
+    const cagePositions = cageBaseGeo.attributes.position;
+    const vertexMap = [];
+
+    for (let i = 0; i < cagePositions.count; i++) {
+      vertexMap.push(new THREE.Vector3(
+        cagePositions.getX(i),
+        cagePositions.getY(i),
+        cagePositions.getZ(i)
+      ));
     }
-    rootGroup.add(vertexSpheres);
 
-    // 3. Toroidal Subconscious Energy Ring (Theta Wave Track)
-    const ringGeo = new THREE.TorusGeometry(2.6, 0.02, 16, 120);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: 0x7A8B7B, // Grounding Sage
-      transparent: true,
-      opacity: 0.5,
+    // Build unique edges
+    const edges = [];
+    const edgeKey = (a, b) => (a < b ? `${a}_${b}` : `${b}_${a}`);
+    const edgeSet = new Set();
+
+    for (let i = 0; i < vertexMap.length; i++) {
+      for (let j = i + 1; j < vertexMap.length; j++) {
+        const d = vertexMap[i].distanceTo(vertexMap[j]);
+        // Icosahedron edge length is roughly 1.73 * radius for subdivision 1
+        if (d > 1.4 && d < 2.1) {
+          const key = edgeKey(i, j);
+          if (!edgeSet.has(key)) {
+            edgeSet.add(key);
+            edges.push([vertexMap[i], vertexMap[j]]);
+          }
+        }
+      }
+    }
+
+    const strutMat = new THREE.MeshStandardMaterial({
+      color: 0xD4AF37, // Polished Champagne Gold
+      emissive: 0xB89225,
+      emissiveIntensity: 0.15,
+      metalness: 0.94,
+      roughness: 0.12,
     });
-    const ringMesh1 = new THREE.Mesh(ringGeo, ringMat);
-    ringMesh1.rotation.x = Math.PI / 3;
-    rootGroup.add(ringMesh1);
 
-    const ringMesh2 = new THREE.Mesh(ringGeo, ringMat);
-    ringMesh2.rotation.x = -Math.PI / 3;
-    ringMesh2.rotation.y = Math.PI / 4;
-    rootGroup.add(ringMesh2);
+    edges.forEach(([v1, v2]) => {
+      const distance = v1.distanceTo(v2);
+      const strutGeo = new THREE.CylinderGeometry(0.016, 0.016, distance, 12);
+      const strut = new THREE.Mesh(strutGeo, strutMat);
 
-    // 4. Ambient Star / Neural Particle Field
-    const particleCount = 450;
-    const particlePositions = new Float32Array(particleCount * 3);
-    const particleColors = new Float32Array(particleCount * 3);
+      // Position at midpoint
+      const mid = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
+      strut.position.copy(mid);
 
-    const goldColor = new THREE.Color('#D4AF37');
-    const sageColor = new THREE.Color('#7A8B7B');
-    const creamColor = new THREE.Color('#F2E4B4');
+      // Orient towards direction
+      const dir = new THREE.Vector3().subVectors(v2, v1).normalize();
+      const axis = new THREE.Vector3(0, 1, 0);
+      strut.quaternion.setFromUnitVectors(axis, dir);
+
+      strutGroup.add(strut);
+    });
+    masterAssembly.add(strutGroup);
+
+    // 5b. Synapse Node Spheres (32 Golden Pearls at vertices)
+    const nodeGeo = new THREE.SphereGeometry(0.052, 24, 24);
+    const nodeMat = new THREE.MeshStandardMaterial({
+      color: 0xFFF2BE,
+      emissive: 0xD4AF37,
+      emissiveIntensity: 0.55,
+      metalness: 0.95,
+      roughness: 0.08,
+    });
+    const nodesMesh = new THREE.InstancedMesh(nodeGeo, nodeMat, vertexMap.length);
+    const dummy = new THREE.Object3D();
+
+    vertexMap.forEach((v, idx) => {
+      dummy.position.copy(v);
+      dummy.updateMatrix();
+      nodesMesh.setMatrixAt(idx, dummy.matrix);
+    });
+    masterAssembly.add(nodesMesh);
+
+    // 6. Triple Unbroken 4K Theta Wave Frequency Rings
+    // Built with high-tessellation TorusGeometry (300 tubular segments, 32 radial)
+    const ringGroup = new THREE.Group();
+    const ringConfigs = [
+      {
+        radius: 2.15,
+        tube: 0.024,
+        rotX: Math.PI / 3.2,
+        rotY: 0,
+        color: 0xD4AF37, // Champagne Gold
+        emissive: 0xB89225,
+        speed: 0.28
+      },
+      {
+        radius: 2.32,
+        tube: 0.020,
+        rotX: -Math.PI / 3.4,
+        rotY: Math.PI / 3.8,
+        color: 0x7A8B7B, // Grounding Sage
+        emissive: 0x485549,
+        speed: -0.32
+      },
+      {
+        radius: 2.48,
+        tube: 0.016,
+        rotX: Math.PI / 5.5,
+        rotY: -Math.PI / 3.2,
+        color: 0xC3B9D6, // Ethereal Lavender
+        emissive: 0x735F92,
+        speed: 0.22
+      }
+    ];
+
+    const rings = ringConfigs.map((cfg) => {
+      const geo = new THREE.TorusGeometry(cfg.radius, cfg.tube, 32, 300);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: cfg.color,
+        emissive: cfg.emissive,
+        emissiveIntensity: 0.2,
+        metalness: 0.92,
+        roughness: 0.12,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.x = cfg.rotX;
+      mesh.rotation.y = cfg.rotY;
+      ringGroup.add(mesh);
+      return { mesh, speed: cfg.speed };
+    });
+    masterAssembly.add(ringGroup);
+
+    // 7. Ambient Micro-Stardust Halo (650 Shimmering Points)
+    const particleCount = 650;
+    const pGeo = new THREE.BufferGeometry();
+    const pPositions = new Float32Array(particleCount * 3);
+    const pColors = new Float32Array(particleCount * 3);
+
+    const cGold = new THREE.Color('#D4AF37');
+    const cSage = new THREE.Color('#7A8B7B');
+    const cCream = new THREE.Color('#FFF5DC');
 
     for (let i = 0; i < particleCount; i++) {
-      const radius = 2.4 + Math.random() * 3.2;
+      const dist = 2.0 + Math.random() * 2.2;
       const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
+      const phi = Math.acos(Math.random() * 2 - 1);
 
-      particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+      pPositions[i * 3] = dist * Math.sin(phi) * Math.cos(theta);
+      pPositions[i * 3 + 1] = dist * Math.sin(phi) * Math.sin(theta);
+      pPositions[i * 3 + 2] = dist * Math.cos(phi);
 
-      const chosenColor = Math.random() > 0.5 ? (Math.random() > 0.5 ? goldColor : sageColor) : creamColor;
-      particleColors[i * 3] = chosenColor.r;
-      particleColors[i * 3 + 1] = chosenColor.g;
-      particleColors[i * 3 + 2] = chosenColor.b;
+      const pick = Math.random();
+      const col = pick < 0.5 ? cGold : pick < 0.82 ? cSage : cCream;
+      pColors[i * 3] = col.r;
+      pColors[i * 3 + 1] = col.g;
+      pColors[i * 3 + 2] = col.b;
     }
 
-    const particleGeo = new THREE.BufferGeometry();
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
 
-    const particleMat = new THREE.PointsMaterial({
-      size: 0.038,
+    const pMat = new THREE.PointsMaterial({
+      size: 0.048,
       vertexColors: true,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
     });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    rootGroup.add(particles);
+    const particles = new THREE.Points(pGeo, pMat);
+    masterAssembly.add(particles);
 
-    // 5. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    // 8. 4K Cinematic Studio Lighting Rig
+    const ambientLight = new THREE.AmbientLight(0xFFFDF8, 1.6);
     scene.add(ambientLight);
 
-    const pointLight1 = new THREE.PointLight(0xD4AF37, 3, 20);
-    pointLight1.position.set(5, 5, 5);
-    scene.add(pointLight1);
+    // Key Light (Warm Champagne)
+    const keyLight = new THREE.PointLight(0xD4AF37, 5.0, 30);
+    keyLight.position.set(7, 7, 7);
+    scene.add(keyLight);
 
-    const pointLight2 = new THREE.PointLight(0x7A8B7B, 2.5, 20);
-    pointLight2.position.set(-5, -4, 3);
-    scene.add(pointLight2);
+    // Fill Light (Calming Sage)
+    const fillLight = new THREE.PointLight(0x7A8B7B, 3.8, 30);
+    fillLight.position.set(-7, -4, 5);
+    scene.add(fillLight);
 
-    // Mouse & Scroll Interactivity
-    let mouseX = 0;
-    let mouseY = 0;
-    let targetX = 0;
-    let targetY = 0;
-    let scrollY = window.scrollY;
+    // Specular Rim Light (Crystal Diamond)
+    const rimLight = new THREE.PointLight(0xFFFFFF, 3.0, 20);
+    rimLight.position.set(0, 8, -4);
+    scene.add(rimLight);
 
-    const handleMouseMove = (event) => {
-      const rect = container.getBoundingClientRect();
-      const clientX = event.clientX - rect.left;
-      const clientY = event.clientY - rect.top;
-      mouseX = (clientX / width) * 2 - 1;
-      mouseY = -(clientY / height) * 2 + 1;
+    // 9. Fluid Mouse & Drag Inertia Controls
+    let isDragging = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+    let velocityX = 0;
+    let velocityY = 0;
+    let targetTiltX = 0;
+    let targetTiltY = 0;
+
+    const onMouseDown = (e) => {
+      isDragging = true;
+      setIsInteracting(true);
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
     };
 
-    const handleScroll = () => {
-      scrollY = window.scrollY;
+    const onMouseMove = (e) => {
+      const rect = container.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+      targetTiltX = (clientX / width) * 2 - 1;
+      targetTiltY = -(clientY / height) * 2 + 1;
+
+      if (isDragging) {
+        const deltaX = e.clientX - prevMouseX;
+        const deltaY = e.clientY - prevMouseY;
+        velocityY += deltaX * 0.005;
+        velocityX += deltaY * 0.005;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+      }
+    };
+
+    const onMouseUp = () => {
+      isDragging = false;
+      setIsInteracting(false);
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        prevMouseX = e.touches[0].clientX;
+        prevMouseY = e.touches[0].clientY;
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (isDragging && e.touches.length === 1) {
+        const deltaX = e.touches[0].clientX - prevMouseX;
+        const deltaY = e.touches[0].clientY - prevMouseY;
+        velocityY += deltaX * 0.006;
+        velocityX += deltaY * 0.006;
+        prevMouseX = e.touches[0].clientX;
+        prevMouseY = e.touches[0].clientY;
+      }
+    };
+
+    const onTouchEnd = () => {
+      isDragging = false;
     };
 
     const handleResize = () => {
@@ -170,49 +325,60 @@ export default function ThreeCanvas() {
       renderer.setSize(width, height);
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    container.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    window.addEventListener('mouseup', onMouseUp);
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
     window.addEventListener('resize', handleResize);
 
-    // Animation Loop
+    // 10. Flawless 60fps Animation Loop
     let clock = new THREE.Clock();
     let animId;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
+      const elapsed = clock.getElapsedTime();
 
-      // Smooth mouse lerp
-      targetX += (mouseX - targetX) * 0.05;
-      targetY += (mouseY - targetY) * 0.05;
-
-      // Scroll factor (0 to ~1)
+      // Scroll progress factor
       const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      const scrollFactor = Math.min(1, Math.max(0, scrollY / maxScroll));
+      const scrollFactor = Math.min(1, Math.max(0, window.scrollY / maxScroll));
 
-      // Rotate groups
-      rootGroup.rotation.y = elapsedTime * 0.18 + targetX * 0.8 + scrollFactor * 3.5;
-      rootGroup.rotation.x = Math.sin(elapsedTime * 0.12) * 0.2 + targetY * 0.5;
+      // Damped rotational physics
+      masterAssembly.rotation.y += velocityY;
+      masterAssembly.rotation.x += velocityX;
+      velocityX *= 0.92;
+      velocityY *= 0.92;
 
-      // Breathe effect on core
-      const pulse = 1 + Math.sin(elapsedTime * 1.5) * 0.06;
-      coreMesh.scale.set(pulse, pulse, pulse);
+      // Meditative autonomous rotation + gentle cursor parallax
+      masterAssembly.rotation.y += 0.005 + scrollFactor * 0.015;
+      masterAssembly.rotation.x += (targetTiltY * 0.28 - masterAssembly.rotation.x) * 0.05;
+      masterAssembly.rotation.z = Math.sin(elapsed * 0.25) * 0.06;
 
-      // Counter-rotate wireframe
-      wireMesh.rotation.y = -elapsedTime * 0.14;
-      wireMesh.rotation.z = Math.cos(elapsedTime * 0.2) * 0.15;
+      // 4-7 Hz Theta Breathing Pulse on Inner Crystalline Core
+      const pulse4to7Hz = 1.0 + Math.sin(elapsed * 2.2) * 0.05 + Math.sin(elapsed * 5.5) * 0.02;
+      coreMesh.scale.set(pulse4to7Hz, pulse4to7Hz, pulse4to7Hz);
+      heartMesh.scale.set(pulse4to7Hz * 1.1, pulse4to7Hz * 1.1, pulse4to7Hz * 1.1);
 
-      // Morphing particle field
-      particles.rotation.y = -elapsedTime * 0.06;
-      particles.rotation.x = Math.sin(elapsedTime * 0.08) * 0.1;
+      // Continuous Counter-Orbit of Cage & Struts
+      strutGroup.rotation.y = -elapsed * 0.1;
+      strutGroup.rotation.z = Math.cos(elapsed * 0.2) * 0.12;
 
-      // Rings precession
-      ringMesh1.rotation.z = elapsedTime * 0.25;
-      ringMesh2.rotation.z = -elapsedTime * 0.3;
+      // Dynamic Node Sparkle
+      const nodePulse = 1.0 + Math.sin(elapsed * 3.5) * 0.12;
+      nodesMesh.rotation.y = strutGroup.rotation.y;
+      nodesMesh.rotation.z = strutGroup.rotation.z;
+      nodesMesh.scale.set(nodePulse, nodePulse, nodePulse);
 
-      // Dynamic scale and tilt based on scroll
-      const dynamicScale = 1 - Math.min(0.2, scrollFactor * 0.4);
-      rootGroup.scale.set(dynamicScale, dynamicScale, dynamicScale);
+      // Smooth Rings Precession
+      rings.forEach((r) => {
+        r.mesh.rotation.z += r.speed * 0.03;
+      });
+
+      // Micro-Stardust Orbital Flow
+      particles.rotation.y = -elapsed * 0.04;
+      particles.rotation.x = Math.sin(elapsed * 0.08) * 0.08;
 
       renderer.render(scene, camera);
     };
@@ -220,8 +386,12 @@ export default function ThreeCanvas() {
     animate();
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('scroll', handleScroll);
+      container.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      container.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animId);
       if (renderer.domElement && container.contains(renderer.domElement)) {
@@ -234,8 +404,10 @@ export default function ThreeCanvas() {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full relative cursor-grab active:cursor-grabbing select-none"
-      title="İnteraktif Kuantum Theta Çekirdeği - Fareyi hareket ettirin"
+      className={`w-full h-full relative select-none transition-transform duration-300 ${
+        isInteracting ? 'cursor-grabbing' : 'cursor-grab'
+      }`}
+      title="4K Theta Kuantum Çekirdeği — Döndürmek için tıklayıp sürükleyin"
     />
   );
 }

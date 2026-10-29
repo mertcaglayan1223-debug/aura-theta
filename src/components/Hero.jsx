@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Activity, BrainCircuit } from 'lucid
 
 export default function Hero({ onOpenQuiz }) {
   return (
-    <section className="relative min-h-screen pt-32 pb-20 flex items-center justify-center overflow-hidden">
+    <section id="hero" className="relative min-h-screen pt-32 pb-20 flex items-center justify-center overflow-hidden">
       {/* Background Soft Radiant Auras */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] aura-gold pointer-events-none opacity-60" />
       <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] aura-sage pointer-events-none opacity-40" />
@@ -84,35 +84,35 @@ export default function Hero({ onOpenQuiz }) {
 
         {/* Right Column: Interactive 3D WebGL Element */}
         <div className="lg:col-span-5 relative flex items-center justify-center">
-          {/* Circular Frame Accent */}
-          <div className="w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] rounded-full relative flex items-center justify-center">
+          {/* Expanded 4K Frame with zero edge clipping */}
+          <div className="w-[360px] h-[360px] sm:w-[520px] sm:h-[520px] lg:w-[580px] lg:h-[580px] relative flex items-center justify-center overflow-visible">
             
             {/* Background glowing halo */}
-            <div className="absolute inset-4 rounded-full bg-gradient-to-tr from-champagne-200/30 via-sage-100/40 to-ethereal-100/40 blur-2xl" />
+            <div className="absolute inset-8 rounded-full bg-gradient-to-tr from-champagne-300/35 via-sage-200/40 to-ethereal-200/40 blur-3xl pointer-events-none" />
 
             {/* 3D WebGL Canvas */}
-            <div className="w-full h-full relative z-10">
+            <div className="w-full h-full relative z-10 overflow-visible">
               <ThreeCanvas />
             </div>
 
             {/* Floating Status Badges */}
-            <div className="absolute -top-2 -right-2 glass-sanctuary px-4 py-2.5 rounded-2xl border border-champagne-400/40 shadow-lg flex items-center gap-3 animate-float-slow">
+            <div className="absolute -top-3 -right-3 glass-sanctuary px-4 py-2.5 rounded-2xl border border-champagne-400/40 shadow-lg flex items-center gap-3 animate-float-slow z-20">
               <div className="w-8 h-8 rounded-full bg-champagne-500/10 flex items-center justify-center">
                 <BrainCircuit className="w-4 h-4 text-champagne-600" />
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase tracking-wider text-sanctuary-500">AI Kuantum Analizi</div>
+                <div className="text-[10px] uppercase tracking-wider text-sanctuary-500 font-mono">4K Kuantum Analiz</div>
                 <div className="text-xs font-semibold text-sanctuary-900">Aktif Bilinçaltı Tarama</div>
               </div>
             </div>
 
-            <div className="absolute -bottom-4 -left-4 glass-sanctuary px-4 py-2.5 rounded-2xl border border-sage-400/40 shadow-lg flex items-center gap-3 animate-float-slow [animation-delay:2s]">
+            <div className="absolute -bottom-3 -left-3 glass-sanctuary px-4 py-2.5 rounded-2xl border border-sage-400/40 shadow-lg flex items-center gap-3 animate-float-slow [animation-delay:2s] z-20">
               <div className="w-8 h-8 rounded-full bg-sage-500/10 flex items-center justify-center">
                 <Activity className="w-4 h-4 text-sage-600" />
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase tracking-wider text-sanctuary-500">Biyo-Rezonans</div>
-                <div className="text-xs font-semibold text-sanctuary-900">Theta 5.5 Hz Uyumlu</div>
+                <div className="text-[10px] uppercase tracking-wider text-sanctuary-500 font-mono">Biyo-Rezonans 432Hz</div>
+                <div className="text-xs font-semibold text-sanctuary-900">Theta 5.5 Hz Senkronize</div>
               </div>
             </div>
           </div>
