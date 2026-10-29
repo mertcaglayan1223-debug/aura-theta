@@ -30,7 +30,7 @@ const TESTIMONIALS = [
     id: 3,
     name: 'Dr. Mert Altan',
     role: 'Bütüncül Tıp Uzmanı & Fonksiyonel Hekim',
-    city: 'İstanbul',
+    city: 'İzmir',
     program: 'AI Bilinçaltı Entegrasyon & Theta',
     before: 'Sürekli hastalara şifa verirken kendi tükenmişliğini ve kronik sırt ağrılarını çözememe.',
     after: 'Theta frekansının parasempatik sinir sistemindeki iyileştirici etkisini bizzat biyo-geribildirimle deneyimledim. Ağrım %100 geçti.',

@@ -155,11 +155,11 @@ export default function Footer() {
             <div className="space-y-2.5 text-xs text-sanctuary-400">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-champagne-500 shrink-0 mt-0.5" />
-                <span>Abdi İpekçi Cad. No: 42, Nişantaşı / İstanbul</span>
+                <span>Kıbrıs Şehitleri Cad. No: 42, Alsancak / İzmir</span>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-sage-400 shrink-0 mt-0.5" />
-                <span>Yalıkavak Sanctuary Koyu, Bodrum (Yaz Dönemi)</span>
+                <span>Alaçatı Sanctuary Koyu, Çeşme / İzmir (Yaz Dönemi)</span>
               </div>
               <div className="flex items-center gap-2 pt-1">
                 <Mail className="w-4 h-4 text-champagne-500 shrink-0" />

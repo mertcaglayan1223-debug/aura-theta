@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Calendar as CalendarIcon, Clock, Video, MapPin, CheckCircle, Sparkles, Send, User, Mail, Phone, MessageSquare } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -116,7 +116,7 @@ export default function BookingSection({ prefilledData, selectedService }) {
                 </div>
                 <div className="flex justify-between pb-2 border-b border-sanctuary-200/80">
                   <span className="text-sanctuary-500">Seans Formatı:</span>
-                  <strong className="text-sanctuary-900">{sessionFormat === 'online' ? 'Online (Zoom HD Frekans Odası)' : 'Sanctuary Özel Süiti (Nişantaşı)'}</strong>
+                  <strong className="text-sanctuary-900">{sessionFormat === 'online' ? 'Online (Zoom HD Frekans Odası)' : 'Sanctuary Özel Süiti (Alsancak, İzmir)'}</strong>
                 </div>
                 {formData.topic && (
                   <div className="flex justify-between pb-2 border-b border-sanctuary-200/80">
@@ -183,7 +183,7 @@ export default function BookingSection({ prefilledData, selectedService }) {
                     <div>
                       <div className="font-serif text-lg font-medium text-sanctuary-950">Özel Sanctuary Süiti (Yüz Yüze)</div>
                       <p className="text-xs text-sanctuary-600 mt-1">
-                        Nişantaşı / İstanbul özel tasarım akustik şifa odasında kristal çanaklar eşliğinde.
+                        Alsancak / İzmir özel tasarım akustik şifa odasında kristal çanaklar eşliğinde.
                       </p>
                     </div>
                   </button>
