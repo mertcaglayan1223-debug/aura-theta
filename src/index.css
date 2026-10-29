@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F4F1EA;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C7BAA2;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #AD9D80;
+  }
+}
+
+/* Glassmorphism and sacred gradients */
+.glass-sanctuary {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(235, 230, 220, 0.85);
+  box-shadow: 0 20px 40px -15px rgba(60, 52, 40, 0.05);
+}
+
+.glass-card-dark {
+  background: rgba(33, 40, 34, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+/* Radial aura glow utilities */
+.aura-gold {
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0) 70%);
+}
+
+.aura-sage {
+  background: radial-gradient(circle, rgba(122, 139, 123, 0.18) 0%, rgba(122, 139, 123, 0) 70%);
+}
+
+.aura-lavender {
+  background: radial-gradient(circle, rgba(180, 165, 205, 0.18) 0%, rgba(180, 165, 205, 0) 70%);
+}
+
+/* Shimmer animation on buttons & accents */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  animation: shimmer 4s infinite;
+}
